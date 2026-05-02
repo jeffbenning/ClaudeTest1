@@ -10,7 +10,7 @@ Start the local dev server (port 3000) with:
 powershell -NonInteractive -ExecutionPolicy Bypass -File .claude/serve.ps1
 ```
 
-Or use the launch configuration `.claude/launch.json` (name: `static`) which runs the same command. Files are served from the repo root — open `http://localhost:3000/game.html` or `http://localhost:3000/dope.html` directly.
+Or use the launch configuration `.claude/launch.json` (name: `static`) which runs the same command. Files are served from the repo root — open `http://localhost:3000/dope.html` directly.
 
 ## Project structure
 

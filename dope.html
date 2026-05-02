@@ -12,7 +12,7 @@ h1 { color: #ff7300; font-size: 1.6rem; letter-spacing: .2em; text-transform: up
 .card { background: #1e1e1e; border: 1px solid #333333; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
 .row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 14px; }
 .field { flex: 1 1 160px; }
-label { display: block; font-size: .8rem; color: #d4d4d4; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 4px; }
+label { display: block; font-size: .68rem; color: #ff7300; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 4px; }
 input, select { width: 100%; background: #141414; border: 1px solid #333333; color: #e2e8f0; font-family: inherit; font-size: .9rem; padding: 8px 10px; border-radius: 4px; }
 input:focus, select:focus { outline: 2px solid #ff7300; }
 button { width: 100%; padding: 11px; background: #333333; color: #ff7300; border: 1px solid #ff7300; font-family: inherit; font-size: .9rem; letter-spacing: .15em; text-transform: uppercase; border-radius: 4px; cursor: pointer; }
@@ -154,7 +154,11 @@ tr:hover td { background: rgba(60,60,60,.4); }
     </div>
   </div>
 
-  <button onclick="calculate()" style="width:100%;padding:11px;background:#333333;color:#ff7300;border:1px solid #ff7300;font-family:'Courier New',monospace;font-size:.9rem;letter-spacing:.15em;text-transform:uppercase;border-radius:4px;cursor:pointer;margin-bottom:16px;" onmouseover="this.style.background='#ff7300';this.style.color='#141414'" onmouseout="this.style.background='#333333';this.style.color='#ff7300'">&#9654; Calculate DOPE</button>
+  <div style="display:flex;gap:10px;margin-bottom:16px;">
+    <button onclick="toggleDopeTable()" id="dopeBtn" style="flex:1 1 0;padding:11px;background:#333333;color:#d4d4d4;border:1px solid #555;font-family:'Courier New',monospace;font-size:.9rem;letter-spacing:.15em;text-transform:uppercase;border-radius:4px;cursor:pointer;" onmouseover="this.style.background='#444'" onmouseout="this.style.background='#333333'">Dope Table</button>
+    <button onclick="toggleCustomTable()" id="customTblBtn" style="flex:1 1 0;padding:11px;background:#333333;color:#d4d4d4;border:1px solid #555;font-family:'Courier New',monospace;font-size:.9rem;letter-spacing:.15em;text-transform:uppercase;border-radius:4px;cursor:pointer;" onmouseover="this.style.background='#444'" onmouseout="this.style.background='#333333'">Custom Table</button>
+    <button onclick="toggleCalibrate()" id="calBtn" style="flex:1 1 0;padding:11px;background:#333333;color:#d4d4d4;border:1px solid #555;font-family:'Courier New',monospace;font-size:.9rem;letter-spacing:.15em;text-transform:uppercase;border-radius:4px;cursor:pointer;" onmouseover="this.style.background='#444'" onmouseout="this.style.background='#333333'">&#9711; Calibrate</button>
+  </div>
   <div id="msg" style="display:none;margin-bottom:16px;padding:8px 12px;border-radius:4px;font-size:.82rem;"></div>
 
   <div id="customResult" style="display:none;background:#1e1e1e;border:2px solid #ff7300;border-radius:8px;padding:20px;margin-bottom:16px;">
@@ -165,16 +169,8 @@ tr:hover td { background: rgba(60,60,60,.4); }
         <div id="customMrad" style="font-size:2.4rem;font-weight:bold;line-height:1"></div>
       </div>
       <div>
-        <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:#d4d4d4;margin-bottom:4px">From LOS</div>
-        <div id="customLos" style="font-size:1.3rem;color:#e2e8f0"></div>
-      </div>
-      <div>
         <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:#d4d4d4;margin-bottom:4px">Velocity</div>
         <div id="customVel" style="font-size:1.3rem;color:#e2e8f0"></div>
-      </div>
-      <div>
-        <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:#d4d4d4;margin-bottom:4px">Energy</div>
-        <div id="customKe" style="font-size:1.3rem;color:#e2e8f0"></div>
       </div>
       <div>
         <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:#d4d4d4;margin-bottom:4px">Time of Flight</div>
@@ -186,8 +182,45 @@ tr:hover td { background: rgba(60,60,60,.4); }
   <div class="card" id="out">
     <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;color:#d4d4d4;border-bottom:1px solid #333333;padding-bottom:8px;margin-bottom:14px">DOPE Table</div>
     <table>
-      <thead><tr><th>Range</th><th>MRAD Adj.</th><th>From LOS</th><th>Velocity</th><th>Energy</th><th>TOF</th></tr></thead>
+      <thead><tr><th>Range</th><th>MRAD Adj.</th><th>Velocity</th><th>TOF</th></tr></thead>
       <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="card" id="customTblCard" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #333333;padding-bottom:8px;margin-bottom:14px;">
+      <span style="font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;color:#d4d4d4;">Custom Distance Table</span>
+      <button class="btn-sm" onclick="addCustomTblRow()" style="padding:5px 12px;font-size:.7rem;">+ Add Row</button>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:.88rem;">
+      <thead>
+        <tr>
+          <th style="text-align:left;">Distance (yd)</th>
+          <th>MRAD ↑</th>
+          <th>Velocity</th>
+          <th>TOF</th>
+          <th style="width:36px;"></th>
+        </tr>
+      </thead>
+      <tbody id="customTblBody"></tbody>
+    </table>
+  </div>
+
+  <div class="card" id="calibCard" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #333333;padding-bottom:8px;margin-bottom:14px;">
+      <span style="font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;color:#d4d4d4;">Calibration — Observed Drop</span>
+      <button class="btn-sm" onclick="addCalibRow()" style="padding:5px 12px;font-size:.7rem;">+ Add Row</button>
+    </div>
+    <p style="font-size:.75rem;color:#6b6b6b;margin-bottom:14px;">Enter your real-world measured drops. MRAD is calculated from your inputs.</p>
+    <table id="calibTable" style="width:100%;border-collapse:collapse;font-size:.88rem;">
+      <thead>
+        <tr>
+          <th style="text-align:left;">Distance (yd)</th>
+          <th>Observed MRAD</th>
+          <th style="width:36px;"></th>
+        </tr>
+      </thead>
+      <tbody id="calibBody"></tbody>
     </table>
   </div>
 </div>
@@ -316,6 +349,8 @@ function selectCartProfile() {
   document.getElementById('mv').value       = p.mv;
   document.getElementById('bc').value       = p.bc;
   document.getElementById('model').value    = p.model;
+  localStorage.setItem('dopeLastCartProfile', name);
+  updateSummaries();
 }
 
 function saveCartProfile() {
@@ -383,6 +418,8 @@ function selectEnvProfile() {
   document.getElementById('envAlt').value   = p.alt;
   document.getElementById('envHum').value   = p.hum;
   document.getElementById('envPres').value  = p.pres;
+  localStorage.setItem('dopeLastEnvProfile', name);
+  updateSummaries();
 }
 
 function saveEnvProfile() {
@@ -499,6 +536,110 @@ function simulate(muzzleVel, bc, model, targetYds, densityFactor, soundSpd) {
   return results;
 }
 
+var _dopeTableOpen    = false;
+var _customTblOpen    = false;
+var _lastSimParams    = null;  // { mv, bc, model, df, snd, boreAngle, scopeFt }
+
+function toggleDopeTable() {
+  _dopeTableOpen = !_dopeTableOpen;
+  var btn = document.getElementById('dopeBtn');
+  if (_dopeTableOpen) {
+    btn.style.color       = '#ff7300';
+    btn.style.borderColor = '#ff7300';
+    calculate();
+  } else {
+    document.getElementById('out').style.display = 'none';
+    document.getElementById('customResult').style.display = 'none';
+    btn.style.color       = '#d4d4d4';
+    btn.style.borderColor = '#555';
+  }
+}
+
+function toggleCustomTable() {
+  _customTblOpen = !_customTblOpen;
+  var btn  = document.getElementById('customTblBtn');
+  var card = document.getElementById('customTblCard');
+  if (_customTblOpen) {
+    btn.style.color       = '#ff7300';
+    btn.style.borderColor = '#ff7300';
+    card.style.display    = 'block';
+    if (document.getElementById('customTblBody').rows.length === 0) addCustomTblRow();
+    // Always ensure the dope table is open and calculated
+    if (!_dopeTableOpen) {
+      _dopeTableOpen = true;
+      var dopeBtn = document.getElementById('dopeBtn');
+      dopeBtn.style.color       = '#ff7300';
+      dopeBtn.style.borderColor = '#ff7300';
+    }
+    calculate();
+  } else {
+    btn.style.color       = '#d4d4d4';
+    btn.style.borderColor = '#555';
+    card.style.display    = 'none';
+  }
+}
+
+function addCustomTblRow() {
+  var tr = document.createElement('tr');
+  tr.innerHTML =
+    '<td style="padding:6px 4px;"><input type="number" min="1" max="2000" placeholder="yd" style="width:90px;" oninput="recalcCustomTbl()" /></td>' +
+    '<td style="padding:6px 12px;text-align:right;font-weight:bold;" class="ctMrad">—</td>' +
+    '<td style="padding:6px 12px;text-align:right;" class="ctVel">—</td>' +
+    '<td style="padding:6px 12px;text-align:right;" class="ctTof">—</td>' +
+    '<td style="padding:6px 4px;text-align:center;"><button class="btn-sm btn-del" onclick="this.closest(\'tr\').remove()" style="padding:3px 8px;font-size:.7rem;">✕</button></td>';
+  document.getElementById('customTblBody').appendChild(tr);
+}
+
+function recalcCustomTbl() {
+  if (!_lastSimParams) return;
+  var p    = _lastSimParams;
+  var rows = document.getElementById('customTblBody').rows;
+  var yds  = [];
+  for (var i = 0; i < rows.length; i++) {
+    var v = parseFloat(rows[i].cells[0].querySelector('input').value);
+    yds.push(isNaN(v) ? null : v);
+  }
+  var validYds = yds.filter(function(y) { return y !== null && y >= 1; });
+  if (validYds.length === 0) return;
+  var results = simulate(p.mv, p.bc, p.model, validYds, p.df, p.snd);
+  var ri = 0;
+  for (var i = 0; i < rows.length; i++) {
+    var yd = yds[i];
+    if (yd === null || yd < 1) { rows[i].cells[1].textContent = '—'; rows[i].cells[2].textContent = '—'; rows[i].cells[3].textContent = '—'; continue; }
+    var r = results[ri++];
+    if (!r) { rows[i].cells[1].textContent = 'out of range'; rows[i].cells[2].textContent = ''; rows[i].cells[3].textContent = ''; continue; }
+    var losIn = (r.yFt + p.boreAngle * yd * 3 - p.scopeFt) * 12;
+    var mrad  = -losIn / (yd * 0.036);
+    var arrow = mrad > 0.03 ? ' ↑' : mrad < -0.03 ? ' ↓' : '';
+    var cls   = Math.abs(mrad) < 2 ? '#ff7300' : Math.abs(mrad) < 5 ? '#fbbf24' : '#f87171';
+    rows[i].cells[1].innerHTML = '<span style="color:' + cls + '">' + Math.abs(mrad).toFixed(2) + arrow + '</span> MRAD';
+    rows[i].cells[2].textContent = r.vel.toFixed(0) + ' fps';
+    rows[i].cells[3].textContent = r.tof.toFixed(3) + ' s';
+  }
+}
+
+function toggleCalibrate() {
+  var card = document.getElementById('calibCard');
+  var btn  = document.getElementById('calBtn');
+  var open = card.style.display === 'block';
+  card.style.display = open ? 'none' : 'block';
+  btn.style.color        = open ? '#d4d4d4' : '#ff7300';
+  btn.style.borderColor  = open ? '#555'    : '#ff7300';
+  if (!open && document.getElementById('calibBody').rows.length === 0) addCalibRow();
+}
+
+function addCalibRow() {
+  var tbody = document.getElementById('calibBody');
+  var idx   = tbody.rows.length;
+  var tr    = document.createElement('tr');
+  tr.innerHTML =
+    '<td style="padding:6px 4px;"><input type="number" min="1" max="2000" placeholder="yd" style="width:90px;" /></td>' +
+    '<td style="padding:6px 4px;text-align:right;"><input type="number" step="0.01" placeholder="mrad" style="width:90px;" /></td>' +
+    '<td style="padding:6px 4px;text-align:center;"><button class="btn-sm btn-del" onclick="this.closest(\'tr\').remove()" style="padding:3px 8px;font-size:.7rem;">✕</button></td>';
+  tbody.appendChild(tr);
+}
+
+
 function calculate() {
   var msgEl = document.getElementById('msg');
   msgEl.style.display = 'none';
@@ -561,16 +702,18 @@ function calculate() {
     html += '<tr>';
     html += '<td' + (isZ ? ' class="zero"' : '') + '>' + yd + ' yd' + (isZ ? ' (zero)' : '') + '</td>';
     html += '<td><span class="' + cls + '">' + mAbs + arrow + '</span> MRAD</td>';
-    html += '<td>' + los + '</td>';
-    var ke = Math.round(wtGr * r.vel * r.vel / 450436);
     html += '<td>' + r.vel.toFixed(0) + ' fps</td>';
-    html += '<td>' + ke.toLocaleString() + ' ft&middot;lb</td>';
     html += '<td>' + r.tof.toFixed(3) + ' s</td>';
     html += '</tr>';
   }
 
+  _lastSimParams = { mv: mv, bc: bc, model: model, df: df, snd: snd, boreAngle: boreAngle, scopeFt: scopeFt };
+
   document.getElementById('tbody').innerHTML = html;
-  document.getElementById('out').style.display = 'block';
+  if (_dopeTableOpen) {
+    document.getElementById('out').style.display = 'block';
+  }
+  if (_customTblOpen) recalcCustomTbl();
 
   // Custom range spotlight
   var custEl = document.getElementById('customResult');
@@ -605,8 +748,24 @@ function err(msg) {
   el.style.display = 'block';
 }
 
-populateCartDropdown('');
-populateEnvDropdown('');
+var _lastCart = localStorage.getItem('dopeLastCartProfile') || '';
+var _lastEnv  = localStorage.getItem('dopeLastEnvProfile')  || '';
+populateCartDropdown(_lastCart);
+populateEnvDropdown(_lastEnv);
+if (_lastCart) selectCartProfile();
+if (_lastEnv)  selectEnvProfile();
+
+// Auto-recalculate when any input that affects the table changes
+var _calcTimer = null;
+function scheduleCalc() {
+  clearTimeout(_calcTimer);
+  _calcTimer = setTimeout(calculate, 300);
+}
+['calSel','wtGr','mv','bc','model','envTemp','envAlt','envHum','envPres','zeroYd','scopeH','custYd'].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', scheduleCalc);
+  if (el) el.addEventListener('change', scheduleCalc);
+});
 </script>
 </body>
 </html>
