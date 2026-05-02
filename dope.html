@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DOPE Calculator</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #141414; color: #e2e8f0; font-family: 'Courier New', monospace; padding: 24px 16px; }
+.wrap { max-width: 820px; margin: 0 auto; }
+h1 { color: #ff7300; font-size: 1.6rem; letter-spacing: .2em; text-transform: uppercase; }
+.sub { color: #d4d4d4; font-size: .9rem; margin: 4px 0 20px; }
+.card { background: #1e1e1e; border: 1px solid #333333; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+.row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 14px; }
+.field { flex: 1 1 160px; }
+label { display: block; font-size: .8rem; color: #d4d4d4; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 4px; }
+input, select { width: 100%; background: #141414; border: 1px solid #333333; color: #e2e8f0; font-family: inherit; font-size: .9rem; padding: 8px 10px; border-radius: 4px; }
+input:focus, select:focus { outline: 2px solid #ff7300; }
+button { width: 100%; padding: 11px; background: #333333; color: #ff7300; border: 1px solid #ff7300; font-family: inherit; font-size: .9rem; letter-spacing: .15em; text-transform: uppercase; border-radius: 4px; cursor: pointer; }
+button:hover { background: #ff7300; color: #141414; }
+.btn-sm { width: auto; padding: 8px 14px; font-size: .75rem; letter-spacing: .1em; }
+.btn-del { color: #f87171; border-color: #f87171; }
+.btn-del:hover { background: #f87171; color: #141414; }
+.card-hdr { display:flex; justify-content:space-between; align-items:center; cursor:pointer; border-bottom:1px solid #333333; padding-bottom:8px; margin-bottom:14px; user-select:none; }
+.card-hdr:hover .hdr-title, .card-hdr:hover .chev { color: #ff7300; }
+.hdr-title { font-size:.8rem; text-transform:uppercase; letter-spacing:.12em; color:#d4d4d4; }
+.chev { font-size:.75rem; color:#d4d4d4; display:inline-block; transition:transform .2s; }
+.card-hdr.closed .chev { transform:rotate(-90deg); }
+.card-body.closed { display:none; }
+.hdr-summary { display:none; font-size:.8rem; color:#ff7300; margin-left:10px; font-weight:normal; letter-spacing:.03em; text-transform:none; }
+.card-hdr.closed .hdr-summary { display:inline; }
+#msg { display: none; margin-top: 10px; padding: 8px 12px; border-radius: 4px; font-size: .82rem; }
+.err { color: #f87171; background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.3); }
+#out { display: none; }
+table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+th { padding: 8px 12px; text-align: right; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: #d4d4d4; border-bottom: 1px solid #333333; }
+th:first-child { text-align: left; }
+td { padding: 10px 12px; text-align: right; border-bottom: 1px solid rgba(60,60,60,.5); }
+td:first-child { text-align: left; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(60,60,60,.4); }
+.g { color: #ff7300; font-weight: bold; }
+.y { color: #fbbf24; font-weight: bold; }
+.r { color: #f87171; font-weight: bold; }
+.zero { color: #ff7300; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>&#9679; DOPE Calculator</h1>
+  <p class="sub">Data On Previous Engagements</p>
+
+  <!-- Cartridge Profile -->
+  <div class="card">
+    <div class="card-hdr" onclick="toggleCard(this)">
+      <span><span class="hdr-title">Cartridge Profile</span><span class="hdr-summary" id="cartSummary"></span></span><span class="chev">&#9660;</span>
+    </div>
+    <div class="card-body">
+      <div class="row" style="align-items:flex-end;margin-bottom:14px;">
+        <div class="field" style="flex:2 1 200px;">
+          <label>Saved Profiles</label>
+          <select id="cartProfileSel" onchange="selectCartProfile()">
+            <option value="">— select a saved profile —</option>
+          </select>
+        </div>
+        <div class="field" style="flex:2 1 200px;">
+          <label>Profile Name</label>
+          <input id="cartProfileName" type="text" placeholder="e.g. .308 Win 175gr SMK">
+        </div>
+        <div style="display:flex;gap:8px;padding-bottom:1px;">
+          <button class="btn-sm" onclick="saveCartProfile()">Save</button>
+          <button class="btn-sm btn-del" onclick="deleteCartProfile()">Delete</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field" style="flex:2 1 260px;">
+          <label>Caliber</label>
+          <select id="calSel" onchange="caliberChanged()">
+            <option value="custom">&#9998; Custom</option>
+            <option value="223rem">.223 Rem / 5.56 NATO</option>
+            <option value="243win">.243 Win</option>
+            <option value="6mmc">6mm Creedmoor</option>
+            <option value="65c">6.5 Creedmoor</option>
+            <option value="65prc">6.5 PRC</option>
+            <option value="308win" selected>.308 Win / 7.62 NATO</option>
+            <option value="3006">.30-06 Springfield</option>
+            <option value="7mmrm">7mm Rem Mag</option>
+            <option value="300wm">.300 Win Mag</option>
+            <option value="300prc">.300 PRC</option>
+            <option value="338lm">.338 Lapua Mag</option>
+            <option value="50bmg">.50 BMG</option>
+          </select>
+        </div>
+        <div class="field" style="flex:2 1 260px;">
+          <label>Load / Bullet (optional label)</label>
+          <input id="loadLabel" type="text" placeholder="e.g. Sierra 175gr MatchKing">
+        </div>
+      </div>
+      <div class="row" style="margin-bottom:0">
+        <div class="field"><label>Bullet Weight (gr)</label><input id="wtGr" type="number" value="175" min="10" max="1000" step="1"></div>
+        <div class="field"><label>Muzzle Velocity (fps)</label><input id="mv" type="number" value="2600"></div>
+        <div class="field"><label>Ballistic Coefficient</label><input id="bc" type="number" value="0.505" step="0.001"></div>
+        <div class="field"><label>BC Model</label>
+          <select id="model">
+            <option value="G1">G1 &mdash; Traditional</option>
+            <option value="G7">G7 &mdash; Boat-Tail / VLD</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Environment -->
+  <div class="card">
+    <div class="card-hdr" onclick="toggleCard(this)">
+      <span><span class="hdr-title">Environment</span><span class="hdr-summary" id="envSummary"></span></span><span class="chev">&#9660;</span>
+    </div>
+    <div class="card-body">
+      <div class="row" style="align-items:flex-end;margin-bottom:14px;">
+        <div class="field" style="flex:2 1 200px;">
+          <label>Saved Profiles</label>
+          <select id="envProfileSel" onchange="selectEnvProfile()">
+            <option value="">— select a saved profile —</option>
+          </select>
+        </div>
+        <div class="field" style="flex:2 1 200px;">
+          <label>Profile Name</label>
+          <input id="envProfileName" type="text" placeholder="e.g. High Desert Summer">
+        </div>
+        <div style="display:flex;gap:8px;padding-bottom:1px;">
+          <button class="btn-sm" onclick="saveEnvProfile()">Save</button>
+          <button class="btn-sm btn-del" onclick="deleteEnvProfile()">Delete</button>
+        </div>
+      </div>
+      <div class="row" style="margin-bottom:0">
+        <div class="field"><label>Temperature (&deg;F)</label><input id="envTemp" type="number" value="59" step="1"></div>
+        <div class="field"><label>Altitude (ft)</label><input id="envAlt" type="number" value="0" step="100" oninput="altChanged()"></div>
+        <div class="field"><label>Humidity (%)</label><input id="envHum" type="number" value="50" min="0" max="100" step="1"></div>
+        <div class="field"><label>Pressure (inHg)</label><input id="envPres" type="number" value="29.92" step="0.01"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shot Parameters -->
+  <div class="card">
+    <div class="card-hdr" onclick="toggleCard(this)">
+      <span class="hdr-title">Shot Parameters</span><span class="chev">&#9660;</span>
+    </div>
+    <div class="card-body">
+      <div class="row" style="margin-bottom:0">
+        <div class="field"><label>Zero Distance (yd)</label><input id="zeroYd" type="number" value="100"></div>
+        <div class="field"><label>Scope Height (in above bore)</label><input id="scopeH" type="number" value="1.5" step="0.1"></div>
+        <div class="field"><label>Custom Range (yd, optional)</label><input id="custYd" type="number" placeholder="e.g. 375"></div>
+      </div>
+    </div>
+  </div>
+
+  <button onclick="calculate()" style="width:100%;padding:11px;background:#333333;color:#ff7300;border:1px solid #ff7300;font-family:'Courier New',monospace;font-size:.9rem;letter-spacing:.15em;text-transform:uppercase;border-radius:4px;cursor:pointer;margin-bottom:16px;" onmouseover="this.style.background='#ff7300';this.style.color='#141414'" onmouseout="this.style.background='#333333';this.style.color='#ff7300'">&#9654; Calculate DOPE</button>
+  <div id="msg" style="display:none;margin-bottom:16px;padding:8px 12px;border-radius:4px;font-size:.82rem;"></div>
+
+  <div id="customResult" style="display:none;background:#1e1e1e;border:2px solid #ff7300;border-radius:8px;padding:20px;margin-bottom:16px;">
+    <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;color:#d4d4d4;border-bottom:1px solid #333333;padding-bottom:8px;margin-bottom:16px" id="customTitle">Custom Range</div>
+    <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;">
+      <div>
+        <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:#d4d4d4;margin-bottom:4px">MRAD Adjustment</div>
+        <div id="customMrad" style="font-size:2.4rem;font-weight:bold;line-height:1"></div>
+      </div>
+      <div>
+        <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:#d4d4d4;margin-bottom:4px">From LOS</div>
+        <div id="customLos" style="font-size:1.3rem;color:#e2e8f0"></div>
+      </div>
+      <div>
+        <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:#d4d4d4;margin-bottom:4px">Velocity</div>
+        <div id="customVel" style="font-size:1.3rem;color:#e2e8f0"></div>
+      </div>
+      <div>
+        <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:#d4d4d4;margin-bottom:4px">Energy</div>
+        <div id="customKe" style="font-size:1.3rem;color:#e2e8f0"></div>
+      </div>
+      <div>
+        <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:#d4d4d4;margin-bottom:4px">Time of Flight</div>
+        <div id="customTof" style="font-size:1.3rem;color:#e2e8f0"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="out">
+    <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;color:#d4d4d4;border-bottom:1px solid #333333;padding-bottom:8px;margin-bottom:14px">DOPE Table</div>
+    <table>
+      <thead><tr><th>Range</th><th>MRAD Adj.</th><th>From LOS</th><th>Velocity</th><th>Energy</th><th>TOF</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function toggleCard(hdr) {
+  hdr.classList.toggle('closed');
+  hdr.nextElementSibling.classList.toggle('closed');
+  updateSummaries();
+}
+
+function updateSummaries() {
+  // Cartridge: profile name > load label > caliber dropdown text
+  var cSel = document.getElementById('cartProfileSel');
+  var cartText = (cSel && cSel.value)
+    ? cSel.options[cSel.selectedIndex].text
+    : (document.getElementById('cartProfileName').value.trim()
+      || document.getElementById('loadLabel').value.trim()
+      || document.getElementById('calSel').options[document.getElementById('calSel').selectedIndex].text);
+  var cartSummary = document.getElementById('cartSummary');
+  if (cartSummary) cartSummary.textContent = cartText ? '— ' + cartText : '';
+
+  // Environment: profile name > temp + altitude
+  var eSel = document.getElementById('envProfileSel');
+  var envText = (eSel && eSel.value)
+    ? eSel.options[eSel.selectedIndex].text
+    : (document.getElementById('envProfileName').value.trim()
+      || (document.getElementById('envTemp').value + '°F, '
+          + parseInt(document.getElementById('envAlt').value || 0).toLocaleString() + ' ft'));
+  var envSummary = document.getElementById('envSummary');
+  if (envSummary) envSummary.textContent = '— ' + envText;
+}
+
+var CALIBERS = {
+  '223rem': { wt:  77, mv: 2750, bc: 0.372, model: 'G1' },
+  '243win': { wt:  95, mv: 3120, bc: 0.355, model: 'G1' },
+  '6mmc':   { wt: 108, mv: 2960, bc: 0.275, model: 'G7' },
+  '65c':    { wt: 140, mv: 2710, bc: 0.315, model: 'G7' },
+  '65prc':  { wt: 147, mv: 2910, bc: 0.360, model: 'G7' },
+  '308win': { wt: 175, mv: 2600, bc: 0.505, model: 'G1' },
+  '3006':   { wt: 168, mv: 2700, bc: 0.475, model: 'G1' },
+  '7mmrm':  { wt: 168, mv: 2860, bc: 0.310, model: 'G7' },
+  '300wm':  { wt: 190, mv: 2900, bc: 0.274, model: 'G7' },
+  '300prc': { wt: 212, mv: 2860, bc: 0.340, model: 'G7' },
+  '338lm':  { wt: 300, mv: 2650, bc: 0.390, model: 'G7' },
+  '50bmg':  { wt: 750, mv: 2820, bc: 0.670, model: 'G1' }
+};
+
+function caliberChanged() {
+  var key = document.getElementById('calSel').value;
+  var c = CALIBERS[key];
+  if (!c) return;
+  document.getElementById('wtGr').value  = c.wt;
+  document.getElementById('mv').value    = c.mv;
+  document.getElementById('bc').value    = c.bc;
+  document.getElementById('model').value = c.model;
+}
+
+var GRAVITY = 32.174;
+var SOUND   = 1116.45;
+var K_G1    = 0.0002657;
+var K_G7    = 0.0001461;
+var DT      = 0.0005;
+
+var G1 = [
+  [0,0.2629],[0.05,0.2558],[0.1,0.2487],[0.15,0.2413],[0.2,0.2344],
+  [0.25,0.2278],[0.3,0.2214],[0.35,0.2155],[0.4,0.2104],[0.45,0.2057],
+  [0.5,0.2010],[0.55,0.1968],[0.6,0.1930],[0.65,0.1986],[0.7,0.2162],
+  [0.725,0.2438],[0.75,0.2915],[0.775,0.3267],[0.8,0.3516],[0.825,0.3780],
+  [0.85,0.4023],[0.875,0.4202],[0.9,0.4547],[0.925,0.4735],[0.95,0.4898],
+  [0.975,0.5063],[1.0,0.5218],[1.025,0.5352],[1.05,0.5445],[1.075,0.5484],
+  [1.1,0.4813],[1.125,0.4650],[1.15,0.4516],[1.2,0.4335],[1.3,0.4243],
+  [1.4,0.4023],[1.5,0.3773],[1.6,0.3563],[1.7,0.3388],[1.8,0.3246],
+  [1.9,0.3130],[2.0,0.2952],[2.5,0.2651],[3.0,0.1995],[4.0,0.1274],[5.0,0.0900]
+];
+
+var G7 = [
+  [0,0.1198],[0.05,0.1197],[0.1,0.1196],[0.15,0.1194],[0.2,0.1193],
+  [0.25,0.1194],[0.3,0.1194],[0.35,0.1194],[0.4,0.1193],[0.45,0.1193],
+  [0.5,0.1194],[0.55,0.1193],[0.6,0.1194],[0.65,0.1197],[0.7,0.1202],
+  [0.725,0.1207],[0.75,0.1215],[0.775,0.1226],[0.8,0.1242],[0.825,0.1266],
+  [0.85,0.1306],[0.875,0.1368],[0.9,0.1464],[0.925,0.1660],[0.95,0.2054],
+  [0.975,0.2993],[1.0,0.3803],[1.025,0.4015],[1.05,0.4043],[1.1,0.4034],
+  [1.15,0.3901],[1.2,0.3683],[1.3,0.3306],[1.4,0.3047],[1.5,0.2933],
+  [1.6,0.2850],[1.7,0.2806],[1.8,0.2772],[1.9,0.2731],[2.0,0.2688],
+  [2.1,0.2629],[2.2,0.2571],[2.3,0.2520],[2.4,0.2473],[2.5,0.2420],
+  [2.6,0.2368],[2.7,0.2320],[2.8,0.2278],[2.9,0.2246],[3.0,0.2215],
+  [3.5,0.2100],[4.0,0.2005],[5.0,0.1845]
+];
+
+// ── Cartridge profile persistence (localStorage) ────────────────────────────
+var CART_KEY = 'dopeCartProfiles';
+
+function getCartProfiles() {
+  try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; }
+  catch(e) { return []; }
+}
+
+function setCartProfiles(profiles) {
+  localStorage.setItem(CART_KEY, JSON.stringify(profiles));
+}
+
+function populateCartDropdown(selectName) {
+  var sel = document.getElementById('cartProfileSel');
+  var profiles = getCartProfiles();
+  sel.innerHTML = '<option value="">— select a saved profile —</option>';
+  profiles.forEach(function(p) {
+    var opt = document.createElement('option');
+    opt.value = p.name;
+    opt.textContent = p.name;
+    if (p.name === selectName) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function selectCartProfile() {
+  var name = document.getElementById('cartProfileSel').value;
+  if (!name) return;
+  var profiles = getCartProfiles();
+  var p = profiles.find(function(x) { return x.name === name; });
+  if (!p) return;
+  document.getElementById('cartProfileName').value = p.name;
+  document.getElementById('calSel').value   = p.cal   || 'custom';
+  document.getElementById('loadLabel').value = p.label || '';
+  document.getElementById('wtGr').value     = p.wt;
+  document.getElementById('mv').value       = p.mv;
+  document.getElementById('bc').value       = p.bc;
+  document.getElementById('model').value    = p.model;
+}
+
+function saveCartProfile() {
+  var name = document.getElementById('cartProfileName').value.trim();
+  if (!name) { alert('Enter a profile name before saving.'); return; }
+  var entry = {
+    name:  name,
+    cal:   document.getElementById('calSel').value,
+    label: document.getElementById('loadLabel').value.trim(),
+    wt:    document.getElementById('wtGr').value,
+    mv:    document.getElementById('mv').value,
+    bc:    document.getElementById('bc').value,
+    model: document.getElementById('model').value
+  };
+  var profiles = getCartProfiles();
+  var idx = profiles.findIndex(function(x) { return x.name === name; });
+  if (idx >= 0) profiles[idx] = entry; else profiles.push(entry);
+  setCartProfiles(profiles);
+  populateCartDropdown(name);
+}
+
+function deleteCartProfile() {
+  var name = document.getElementById('cartProfileSel').value;
+  if (!name) { alert('Select a profile to delete.'); return; }
+  if (!confirm('Delete profile "' + name + '"?')) return;
+  var profiles = getCartProfiles().filter(function(x) { return x.name !== name; });
+  setCartProfiles(profiles);
+  document.getElementById('cartProfileName').value = '';
+  populateCartDropdown('');
+}
+
+// ── Environment profile persistence (localStorage) ──────────────────────────
+var ENV_KEY = 'dopeEnvProfiles';
+
+function getEnvProfiles() {
+  try { return JSON.parse(localStorage.getItem(ENV_KEY)) || []; }
+  catch(e) { return []; }
+}
+
+function setEnvProfiles(profiles) {
+  localStorage.setItem(ENV_KEY, JSON.stringify(profiles));
+}
+
+function populateEnvDropdown(selectName) {
+  var sel = document.getElementById('envProfileSel');
+  var profiles = getEnvProfiles();
+  sel.innerHTML = '<option value="">— select a saved profile —</option>';
+  profiles.forEach(function(p) {
+    var opt = document.createElement('option');
+    opt.value = p.name;
+    opt.textContent = p.name;
+    if (p.name === selectName) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function selectEnvProfile() {
+  var name = document.getElementById('envProfileSel').value;
+  if (!name) return;
+  var profiles = getEnvProfiles();
+  var p = profiles.find(function(x) { return x.name === name; });
+  if (!p) return;
+  document.getElementById('envProfileName').value = p.name;
+  document.getElementById('envTemp').value  = p.temp;
+  document.getElementById('envAlt').value   = p.alt;
+  document.getElementById('envHum').value   = p.hum;
+  document.getElementById('envPres').value  = p.pres;
+}
+
+function saveEnvProfile() {
+  var name = document.getElementById('envProfileName').value.trim();
+  if (!name) { alert('Enter a profile name before saving.'); return; }
+  var entry = {
+    name: name,
+    temp: document.getElementById('envTemp').value,
+    alt:  document.getElementById('envAlt').value,
+    hum:  document.getElementById('envHum').value,
+    pres: document.getElementById('envPres').value
+  };
+  var profiles = getEnvProfiles();
+  var idx = profiles.findIndex(function(x) { return x.name === name; });
+  if (idx >= 0) profiles[idx] = entry; else profiles.push(entry);
+  setEnvProfiles(profiles);
+  populateEnvDropdown(name);
+}
+
+function deleteEnvProfile() {
+  var name = document.getElementById('envProfileSel').value;
+  if (!name) { alert('Select a profile to delete.'); return; }
+  if (!confirm('Delete profile "' + name + '"?')) return;
+  var profiles = getEnvProfiles().filter(function(x) { return x.name !== name; });
+  setEnvProfiles(profiles);
+  document.getElementById('envProfileName').value = '';
+  populateEnvDropdown('');
+}
+
+// Pressure (inHg) from altitude (ft) via ISA troposphere model
+function altToPressure(altFt) {
+  if (altFt <= 0) return 29.92126;
+  return 29.92126 * Math.pow(1 - 6.8755856e-6 * altFt, 5.2558797);
+}
+
+// Auto-fill pressure when altitude changes
+function altChanged() {
+  var alt = parseFloat(document.getElementById('envAlt').value);
+  if (!isNaN(alt) && alt >= 0) {
+    document.getElementById('envPres').value = altToPressure(alt).toFixed(2);
+  }
+}
+
+// Air density relative to ICAO standard (1.2250 kg/m³ @ 59°F, 29.921 inHg, 0% RH)
+function getDensityFactor(tempF, presInHg, humPct) {
+  var T_K  = (tempF - 32) * 5/9 + 273.15;
+  var T_C  = (tempF - 32) * 5/9;
+  var P_Pa = presInHg * 3386.39;
+  // Saturation vapor pressure — Magnus formula
+  var e_s  = 610.78 * Math.exp(17.269 * T_C / (237.3 + T_C));
+  var e_Pa = (humPct / 100) * e_s;
+  // Moist air density (kg/m³)
+  var rho  = (P_Pa - e_Pa) / (287.058 * T_K) + e_Pa / (461.495 * T_K);
+  return rho / 1.2250;
+}
+
+// Speed of sound (ft/s) — depends on temperature only (dry air approximation)
+function getSoundSpeed(tempF) {
+  return 1116.45 * Math.sqrt((tempF + 459.67) / 518.67);
+}
+
+function cdAt(mach, tbl) {
+  if (mach <= tbl[0][0]) return tbl[0][1];
+  for (var i = 0; i < tbl.length - 1; i++) {
+    if (mach < tbl[i+1][0]) {
+      var t = (mach - tbl[i][0]) / (tbl[i+1][0] - tbl[i][0]);
+      return tbl[i][1] + t * (tbl[i+1][1] - tbl[i][1]);
+    }
+  }
+  return tbl[tbl.length-1][1];
+}
+
+function simulate(muzzleVel, bc, model, targetYds, densityFactor, soundSpd) {
+  var tbl = (model === 'G7') ? G7 : G1;
+  var kd  = (model === 'G7') ? K_G7 : K_G1;
+  kd *= (densityFactor || 1.0);
+  var snd = soundSpd || SOUND;
+  var results = [];
+  var i;
+  for (i = 0; i < targetYds.length; i++) results.push(null);
+
+  // Sort targets
+  var sorted = [];
+  for (i = 0; i < targetYds.length; i++) sorted.push({ yd: targetYds[i], ft: targetYds[i]*3, idx: i });
+  sorted.sort(function(a,b){ return a.ft - b.ft; });
+
+  var vx = muzzleVel, vy = 0, px = 0, py = 0, t = 0, ptr = 0;
+
+  while (ptr < sorted.length) {
+    var spd = Math.sqrt(vx*vx + vy*vy);
+    if (spd < 100 || px > 25000) break;
+
+    var mach = spd / snd;
+    var cd   = cdAt(mach, tbl);
+    var aM   = kd * cd * spd * spd / bc;
+    var ax   = -aM * vx / spd;
+    var ay   = (-aM * vy / spd) - GRAVITY;
+
+    var pxn = px + vx*DT, pyn = py + vy*DT;
+    var vxn = vx + ax*DT, vyn = vy + ay*DT;
+
+    while (ptr < sorted.length && pxn >= sorted[ptr].ft) {
+      var tft = sorted[ptr].ft;
+      var f   = (tft - px) / (pxn - px);
+      results[sorted[ptr].idx] = {
+        yFt: py + f*(pyn-py),
+        vel: Math.sqrt(Math.pow(vx+f*(vxn-vx),2) + Math.pow(vy+f*(vyn-vy),2)),
+        tof: t + f*DT
+      };
+      ptr++;
+    }
+    px=pxn; py=pyn; vx=vxn; vy=vyn; t+=DT;
+  }
+  return results;
+}
+
+function calculate() {
+  var msgEl = document.getElementById('msg');
+  msgEl.style.display = 'none';
+
+  var zeroYd  = parseFloat(document.getElementById('zeroYd').value);
+  var mv      = parseFloat(document.getElementById('mv').value);
+  var bc      = parseFloat(document.getElementById('bc').value);
+  var model   = document.getElementById('model').value;
+  var wtGr    = parseFloat(document.getElementById('wtGr').value);
+  var scopeIn = parseFloat(document.getElementById('scopeH').value);
+  var custYd  = parseFloat(document.getElementById('custYd').value);
+
+  if (isNaN(zeroYd) || zeroYd < 10 || zeroYd > 999)  { err('Zero distance: 10-999 yd'); return; }
+  if (isNaN(mv)     || mv < 500    || mv > 5000)       { err('Muzzle velocity: 500-5000 fps'); return; }
+  if (isNaN(bc)     || bc < 0.05   || bc > 1.5)        { err('BC: 0.050-1.500'); return; }
+  if (isNaN(wtGr)   || wtGr < 10   || wtGr > 1000)     { err('Bullet weight: 10-1000 gr'); return; }
+  if (isNaN(scopeIn)) scopeIn = 1.5;
+
+  var tempF   = parseFloat(document.getElementById('envTemp').value);
+  var presInHg = parseFloat(document.getElementById('envPres').value);
+  var humPct  = parseFloat(document.getElementById('envHum').value);
+  if (isNaN(tempF))    tempF    = 59;
+  if (isNaN(presInHg)) presInHg = 29.92;
+  if (isNaN(humPct))   humPct   = 50;
+  humPct = Math.max(0, Math.min(100, humPct));
+
+  var df  = getDensityFactor(tempF, presInHg, humPct);
+  var snd = getSoundSpeed(tempF);
+
+  var scopeFt = scopeIn / 12;
+
+  // Pass 1: level bore to find drop at zero range
+  var pass1 = simulate(mv, bc, model, [zeroYd], df, snd);
+  if (!pass1[0]) { err('Bullet did not reach zero distance. Check inputs.'); return; }
+
+  var boreAngle = (scopeFt - pass1[0].yFt) / (zeroYd * 3);
+
+  // Pass 2: all ranges
+  var ranges = [100,200,300,400,500,600,700,800,900,1000];
+  if (!isNaN(custYd) && custYd >= 10 && ranges.indexOf(custYd) === -1) ranges.push(custYd);
+
+  var raw = simulate(mv, bc, model, ranges, df, snd);
+
+  var html = '';
+  for (var i = 0; i < ranges.length; i++) {
+    var yd = ranges[i];
+    var r  = raw[i];
+    if (!r) continue;
+
+    var losIn = (r.yFt + boreAngle * yd * 3 - scopeFt) * 12;
+    var mrad  = -losIn / (yd * 0.036);
+    var isZ   = (Math.abs(yd - zeroYd) < 0.5);
+    var isC   = (!isNaN(custYd) && yd === custYd && ranges.indexOf(custYd) >= 10);
+
+    var mAbs  = Math.abs(mrad).toFixed(2);
+    var arrow = mrad >  0.03 ? ' &uarr;' : mrad < -0.03 ? ' &darr;' : '';
+    var cls   = Math.abs(mrad) < 2 ? 'g' : Math.abs(mrad) < 5 ? 'y' : 'r';
+    var los   = (losIn >= 0 ? '+' : '') + losIn.toFixed(1) + '"';
+
+    html += '<tr>';
+    html += '<td' + (isZ ? ' class="zero"' : '') + '>' + yd + ' yd' + (isZ ? ' (zero)' : '') + '</td>';
+    html += '<td><span class="' + cls + '">' + mAbs + arrow + '</span> MRAD</td>';
+    html += '<td>' + los + '</td>';
+    var ke = Math.round(wtGr * r.vel * r.vel / 450436);
+    html += '<td>' + r.vel.toFixed(0) + ' fps</td>';
+    html += '<td>' + ke.toLocaleString() + ' ft&middot;lb</td>';
+    html += '<td>' + r.tof.toFixed(3) + ' s</td>';
+    html += '</tr>';
+  }
+
+  document.getElementById('tbody').innerHTML = html;
+  document.getElementById('out').style.display = 'block';
+
+  // Custom range spotlight
+  var custEl = document.getElementById('customResult');
+  if (!isNaN(custYd) && custYd >= 10) {
+    var ci = ranges.indexOf(custYd);
+    var cr = (ci >= 0) ? raw[ci] : null;
+    if (cr) {
+      var cLos  = (cr.yFt + boreAngle * custYd * 3 - scopeFt) * 12;
+      var cMrad = -cLos / (custYd * 0.036);
+      var cKe   = Math.round(wtGr * cr.vel * cr.vel / 450436);
+      var cCls  = Math.abs(cMrad) < 2 ? '#ff7300' : Math.abs(cMrad) < 5 ? '#fbbf24' : '#f87171';
+      var cArr  = cMrad >  0.03 ? ' ↑' : cMrad < -0.03 ? ' ↓' : '';
+      document.getElementById('customTitle').textContent = 'Custom Range — ' + custYd + ' yd';
+      document.getElementById('customMrad').innerHTML = '<span style="color:' + cCls + '">' + Math.abs(cMrad).toFixed(2) + cArr + '</span> <span style="font-size:1.2rem;color:#d4d4d4">MRAD</span>';
+      document.getElementById('customLos').textContent = (cLos >= 0 ? '+' : '') + cLos.toFixed(1) + '"';
+      document.getElementById('customVel').textContent = cr.vel.toFixed(0) + ' fps';
+      document.getElementById('customKe').textContent  = cKe.toLocaleString() + ' ft·lb';
+      document.getElementById('customTof').textContent = cr.tof.toFixed(3) + ' s';
+      custEl.style.display = 'block';
+    } else {
+      custEl.style.display = 'none';
+    }
+  } else {
+    custEl.style.display = 'none';
+  }
+}
+
+function err(msg) {
+  var el = document.getElementById('msg');
+  el.textContent = 'Error: ' + msg;
+  el.className = 'err';
+  el.style.display = 'block';
+}
+
+populateCartDropdown('');
+populateEnvDropdown('');
+</script>
+</body>
+</html>
