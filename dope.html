@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>DOPE Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: #141414; color: #e2e8f0; font-family: 'Courier New', monospace; padding: 24px 16px; }
@@ -12,7 +14,7 @@ h1 { color: #ff7300; font-size: 1.6rem; letter-spacing: .2em; text-transform: up
 .card { background: #1e1e1e; border: 1px solid #333333; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
 .row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 14px; }
 .field { flex: 1 1 160px; }
-label { display: block; font-size: .68rem; color: #6b6b6b; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 4px; }
+label { display: block; font-size: .68rem; color: #a0a0a0; font-family: 'Roboto Mono', monospace; letter-spacing: .03em; margin-bottom: 4px; }
 input, select { width: 100%; background: #141414; border: 1px solid #333333; color: #e2e8f0; font-family: inherit; font-size: .9rem; padding: 8px 10px; border-radius: 4px; }
 input:focus, select:focus { outline: 2px solid #ff7300; }
 button { width: 100%; padding: 11px; background: #333333; color: #ff7300; border: 1px solid #ff7300; font-family: inherit; font-size: .9rem; letter-spacing: .15em; text-transform: uppercase; border-radius: 4px; cursor: pointer; }
@@ -29,6 +31,16 @@ button:hover { background: #ff7300; color: #141414; }
 .hdr-summary { display:none; font-size:.8rem; color:#ff7300; margin-left:10px; font-weight:normal; letter-spacing:.03em; text-transform:none; }
 .card-hdr.closed .hdr-summary { display:inline; }
 #msg { display: none; margin-top: 10px; padding: 8px 12px; border-radius: 4px; font-size: .82rem; }
+#modalOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:100; align-items:center; justify-content:center; }
+#modalOverlay.open { display:flex; }
+#modalBox { background:#1e1e1e; border:1px solid #ff7300; border-radius:8px; padding:28px 32px; max-width:420px; width:90%; font-family:'Courier New',monospace; }
+#modalMsg { font-size:.95rem; color:#e2e8f0; margin-bottom:22px; line-height:1.5; }
+.modal-btns { display:flex; gap:12px; }
+.modal-btns button { flex:1; padding:10px; font-family:'Courier New',monospace; font-size:.85rem; letter-spacing:.12em; text-transform:uppercase; border-radius:4px; cursor:pointer; }
+#modalYes { background:#333; color:#ff7300; border:1px solid #ff7300; }
+#modalYes:hover { background:#ff7300; color:#141414; }
+#modalNo  { background:#333; color:#d4d4d4; border:1px solid #555; }
+#modalNo:hover  { background:#444; }
 .err { color: #f87171; background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.3); }
 #out { display: none; }
 table { width: 100%; border-collapse: collapse; font-size: .88rem; }
@@ -140,16 +152,15 @@ tr:hover td { background: rgba(60,60,60,.4); }
     </div>
   </div>
 
-  <!-- Shot Parameters -->
+  <!-- Zero & Scope -->
   <div class="card">
     <div class="card-hdr" onclick="toggleCard(this)">
-      <span class="hdr-title">Shot Parameters</span><span class="chev">&#9660;</span>
+      <span class="hdr-title">Zero & Scope</span><span class="chev">&#9660;</span>
     </div>
     <div class="card-body">
       <div class="row" style="margin-bottom:0">
         <div class="field"><label>Zero Distance (yd)</label><input id="zeroYd" type="number" value="100"></div>
         <div class="field"><label>Scope Height (in above bore)</label><input id="scopeH" type="number" value="1.5" step="0.1"></div>
-        <div class="field"><label>Custom Range (yd, optional)</label><input id="custYd" type="number" placeholder="e.g. 375"></div>
       </div>
     </div>
   </div>
@@ -161,26 +172,12 @@ tr:hover td { background: rgba(60,60,60,.4); }
   </div>
   <div id="msg" style="display:none;margin-bottom:16px;padding:8px 12px;border-radius:4px;font-size:.82rem;"></div>
 
-  <div id="customResult" style="display:none;background:#1e1e1e;border:2px solid #ff7300;border-radius:8px;padding:20px;margin-bottom:16px;">
-    <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;color:#d4d4d4;border-bottom:1px solid #333333;padding-bottom:8px;margin-bottom:16px" id="customTitle">Custom Range</div>
-    <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;">
-      <div>
-        <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:#d4d4d4;margin-bottom:4px">MRAD Adjustment</div>
-        <div id="customMrad" style="font-size:2.4rem;font-weight:bold;line-height:1"></div>
-      </div>
-      <div>
-        <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:#d4d4d4;margin-bottom:4px">Velocity</div>
-        <div id="customVel" style="font-size:1.3rem;color:#e2e8f0"></div>
-      </div>
-      <div>
-        <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:#d4d4d4;margin-bottom:4px">Time of Flight</div>
-        <div id="customTof" style="font-size:1.3rem;color:#e2e8f0"></div>
-      </div>
-    </div>
-  </div>
-
   <div class="card" id="out">
     <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;color:#d4d4d4;border-bottom:1px solid #333333;padding-bottom:8px;margin-bottom:14px">DOPE Table</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+      <div style="flex:0 0 auto;"><label style="display:block;">Custom Range (yd)</label><input id="custYd" type="number" placeholder="e.g. 375" style="width:130px;" oninput="updateInlineCustYd()"></div>
+      <div id="custYdResult" style="padding-top:18px;font-size:1.1rem;font-weight:bold;color:#ff7300;white-space:nowrap;"></div>
+    </div>
     <table>
       <thead><tr><th>Range</th><th>MRAD Adj.</th><th>Velocity</th><th>TOF</th></tr></thead>
       <tbody id="tbody"></tbody>
@@ -216,7 +213,7 @@ tr:hover td { background: rgba(60,60,60,.4); }
       </div>
       <div style="flex:0 0 auto;padding-bottom:9px;text-align:center;">
         <div style="font-size:.65rem;color:#6b6b6b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Calculated</div>
-        <div id="calibCalcMrad" style="font-size:.95rem;color:#ff7300;font-weight:bold;white-space:nowrap;">—</div>
+        <div id="calibCalcMrad" style="font-size:.95rem;color:#e2e8f0;font-weight:bold;white-space:nowrap;">—</div>
       </div>
       <div style="flex:0 0 auto;padding-bottom:12px;color:#555;font-size:1.1rem;">+</div>
       <div class="field" style="flex:1 1 120px;">
@@ -225,10 +222,20 @@ tr:hover td { background: rgba(60,60,60,.4); }
       </div>
       <div style="flex:0 0 auto;padding-bottom:9px;text-align:center;">
         <div style="font-size:.65rem;color:#6b6b6b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Total</div>
-        <div id="calibTotal" style="font-size:.95rem;color:#e2e8f0;font-weight:bold;white-space:nowrap;">—</div>
+        <div id="calibTotal" style="font-size:.95rem;color:#ff7300;font-weight:bold;white-space:nowrap;">—</div>
       </div>
     </div>
     <button onclick="applyCalibration()" style="width:100%;padding:10px;background:#333333;color:#ff7300;border:1px solid #ff7300;font-family:'Courier New',monospace;font-size:.9rem;letter-spacing:.15em;text-transform:uppercase;border-radius:4px;cursor:pointer;" onmouseover="this.style.background='#ff7300';this.style.color='#141414'" onmouseout="this.style.background='#333333';this.style.color='#ff7300'">Apply</button>
+  </div>
+</div>
+
+<div id="modalOverlay">
+  <div id="modalBox">
+    <div id="modalMsg"></div>
+    <div class="modal-btns">
+      <button id="modalYes" onclick="modalConfirm(true)">Yes</button>
+      <button id="modalNo"  onclick="modalConfirm(false)">No</button>
+    </div>
   </div>
 </div>
 
@@ -550,8 +557,7 @@ var _lastSimParams    = null;  // { mv, bc, model, df, snd, boreAngle, scopeFt }
 function closeAllPanels() {
   _dopeTableOpen = false;
   _customTblOpen = false;
-  document.getElementById('out').style.display         = 'none';
-  document.getElementById('customResult').style.display = 'none';
+  document.getElementById('out').style.display          = 'none';
   document.getElementById('customTblCard').style.display = 'none';
   document.getElementById('calibCard').style.display    = 'none';
   var ids = ['dopeBtn','customTblBtn','calBtn'];
@@ -708,19 +714,86 @@ function updateCalibCalc() {
   updateCalibTotal();
 }
 
+var _calibTotalVal = NaN;
+
 function updateCalibTotal() {
   var calcText = document.getElementById('calibCalcMrad').textContent;
   var extra    = parseFloat(document.getElementById('calibMrad').value);
   var totalEl  = document.getElementById('calibTotal');
   var calcVal  = parseFloat(calcText);
-  if (isNaN(calcVal) || calcText === '—') { totalEl.textContent = '—'; return; }
+  if (isNaN(calcVal) || calcText === '—') { _calibTotalVal = NaN; totalEl.textContent = '—'; return; }
   var total = calcVal + (isNaN(extra) ? 0 : extra);
+  _calibTotalVal = total;
   var arrow = total > 0.03 ? ' ↑' : total < -0.03 ? ' ↓' : '';
   totalEl.textContent = Math.abs(total).toFixed(2) + arrow + ' MRAD';
 }
 
 function applyCalibration() {
-  // behavior to be defined
+  var dist = parseFloat(document.getElementById('calibDist').value);
+  if (isNaN(dist) || dist < 1 || isNaN(_calibTotalVal)) {
+    alert('Enter a distance and additional drop before applying.');
+    return;
+  }
+  var oldBc = parseFloat(document.getElementById('bc').value).toFixed(3);
+  var targetMrad = _calibTotalVal;
+
+  var mv      = parseFloat(document.getElementById('mv').value);
+  var model   = document.getElementById('model').value;
+  var scopeFt = (parseFloat(document.getElementById('scopeH').value) || 1.5) / 12;
+  var zeroYd  = parseFloat(document.getElementById('zeroYd').value);
+  var tempF   = parseFloat(document.getElementById('envTemp').value)  || 59;
+  var presInHg= parseFloat(document.getElementById('envPres').value)  || 29.92;
+  var humPct  = parseFloat(document.getElementById('envHum').value)   || 50;
+  var df  = getDensityFactor(tempF, presInHg, humPct);
+  var snd = getSoundSpeed(tempF);
+
+  function mradForBC(bc) {
+    var p1 = simulate(mv, bc, model, [zeroYd], df, snd)[0];
+    if (!p1) return null;
+    var ba = (scopeFt - p1.yFt) / (zeroYd * 3);
+    var r  = simulate(mv, bc, model, [dist], df, snd)[0];
+    if (!r) return null;
+    var losIn = (r.yFt + ba * dist * 3 - scopeFt) * 12;
+    return -losIn / (dist * 0.036);
+  }
+
+  // Binary search: higher BC → less drop → lower MRAD
+  var lo = 0.050, hi = 1.500, newBc = null;
+  for (var i = 0; i < 60; i++) {
+    var mid = (lo + hi) / 2;
+    var m   = mradForBC(mid);
+    if (m === null) break;
+    if (Math.abs(m - targetMrad) < 0.0005) { newBc = mid; break; }
+    if (m < targetMrad) hi = mid;   // computed drop less than observed → need lower BC
+    else                lo = mid;
+    newBc = mid;
+  }
+
+  if (newBc === null || newBc <= 0.050 || newBc >= 1.499) {
+    alert('Could not find a BC that matches the observed drop. Check your inputs.');
+    return;
+  }
+
+  _pendingBC = newBc;
+  document.getElementById('modalMsg').textContent =
+    'This will change the BC from ' + oldBc + ' to ' + newBc.toFixed(3) + '.';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+var _pendingBC = null;
+
+function modalConfirm(yes) {
+  document.getElementById('modalOverlay').classList.remove('open');
+  if (!yes || _pendingBC === null) { _pendingBC = null; return; }
+  document.getElementById('bc').value = _pendingBC.toFixed(3);
+  _pendingBC = null;
+  document.getElementById('calibDist').value = '';
+  document.getElementById('calibMrad').value = '';
+  _calibTotalVal = NaN;
+  document.getElementById('calibCalcMrad').textContent = '—';
+  document.getElementById('calibTotal').textContent    = '—';
+  closeAllPanels();
+  toggleDopeTable();
 }
 
 
@@ -734,7 +807,6 @@ function calculate() {
   var model   = document.getElementById('model').value;
   var wtGr    = parseFloat(document.getElementById('wtGr').value);
   var scopeIn = parseFloat(document.getElementById('scopeH').value);
-  var custYd  = parseFloat(document.getElementById('custYd').value);
 
   if (isNaN(zeroYd) || zeroYd < 10 || zeroYd > 999)  { err('Zero distance: 10-999 yd'); return; }
   if (isNaN(mv)     || mv < 500    || mv > 5000)       { err('Muzzle velocity: 500-5000 fps'); return; }
@@ -763,7 +835,6 @@ function calculate() {
 
   // Pass 2: all ranges
   var ranges = [100,200,300,400,500,600,700,800,900,1000];
-  if (!isNaN(custYd) && custYd >= 10 && ranges.indexOf(custYd) === -1) ranges.push(custYd);
 
   var raw = simulate(mv, bc, model, ranges, df, snd);
 
@@ -776,11 +847,10 @@ function calculate() {
     var losIn = (r.yFt + boreAngle * yd * 3 - scopeFt) * 12;
     var mrad  = -losIn / (yd * 0.036);
     var isZ   = (Math.abs(yd - zeroYd) < 0.5);
-    var isC   = (!isNaN(custYd) && yd === custYd && ranges.indexOf(custYd) >= 10);
 
     var mAbs  = Math.abs(mrad).toFixed(2);
     var arrow = mrad >  0.03 ? ' &uarr;' : mrad < -0.03 ? ' &darr;' : '';
-    var cls   = Math.abs(mrad) < 2 ? 'g' : Math.abs(mrad) < 5 ? 'y' : 'r';
+    var cls   = 'g';
     var los   = (losIn >= 0 ? '+' : '') + losIn.toFixed(1) + '"';
 
     html += '<tr>';
@@ -798,31 +868,20 @@ function calculate() {
     document.getElementById('out').style.display = 'block';
   }
   if (_customTblOpen) recalcCustomTbl();
+  updateInlineCustYd();
+}
 
-  // Custom range spotlight
-  var custEl = document.getElementById('customResult');
-  if (!isNaN(custYd) && custYd >= 10) {
-    var ci = ranges.indexOf(custYd);
-    var cr = (ci >= 0) ? raw[ci] : null;
-    if (cr) {
-      var cLos  = (cr.yFt + boreAngle * custYd * 3 - scopeFt) * 12;
-      var cMrad = -cLos / (custYd * 0.036);
-      var cKe   = Math.round(wtGr * cr.vel * cr.vel / 450436);
-      var cCls  = Math.abs(cMrad) < 2 ? '#ff7300' : Math.abs(cMrad) < 5 ? '#fbbf24' : '#f87171';
-      var cArr  = cMrad >  0.03 ? ' ↑' : cMrad < -0.03 ? ' ↓' : '';
-      document.getElementById('customTitle').textContent = 'Custom Range — ' + custYd + ' yd';
-      document.getElementById('customMrad').innerHTML = '<span style="color:' + cCls + '">' + Math.abs(cMrad).toFixed(2) + cArr + '</span> <span style="font-size:1.2rem;color:#d4d4d4">MRAD</span>';
-      document.getElementById('customLos').textContent = (cLos >= 0 ? '+' : '') + cLos.toFixed(1) + '"';
-      document.getElementById('customVel').textContent = cr.vel.toFixed(0) + ' fps';
-      document.getElementById('customKe').textContent  = cKe.toLocaleString() + ' ft·lb';
-      document.getElementById('customTof').textContent = cr.tof.toFixed(3) + ' s';
-      custEl.style.display = 'block';
-    } else {
-      custEl.style.display = 'none';
-    }
-  } else {
-    custEl.style.display = 'none';
-  }
+function updateInlineCustYd() {
+  var yd  = parseFloat(document.getElementById('custYd').value);
+  var el  = document.getElementById('custYdResult');
+  if (!_lastSimParams || isNaN(yd) || yd < 1) { el.textContent = ''; return; }
+  var p = _lastSimParams;
+  var r = simulate(p.mv, p.bc, p.model, [yd], p.df, p.snd)[0];
+  if (!r) { el.textContent = 'out of range'; return; }
+  var losIn = (r.yFt + p.boreAngle * yd * 3 - p.scopeFt) * 12;
+  var mrad  = -losIn / (yd * 0.036);
+  var arrow = mrad > 0.03 ? ' ↑' : mrad < -0.03 ? ' ↓' : '';
+  el.textContent = Math.abs(mrad).toFixed(2) + arrow + ' MRAD';
 }
 
 function err(msg) {
@@ -839,13 +898,22 @@ populateEnvDropdown(_lastEnv);
 if (_lastCart) selectCartProfile();
 if (_lastEnv)  selectEnvProfile();
 
+// Open dope table on startup if inputs are sufficient
+(function() {
+  var mv = parseFloat(document.getElementById('mv').value);
+  var bc = parseFloat(document.getElementById('bc').value);
+  var zy = parseFloat(document.getElementById('zeroYd').value);
+  var wt = parseFloat(document.getElementById('wtGr').value);
+  if (!isNaN(mv) && !isNaN(bc) && !isNaN(zy) && !isNaN(wt)) toggleDopeTable();
+})();
+
 // Auto-recalculate when any input that affects the table changes
 var _calcTimer = null;
 function scheduleCalc() {
   clearTimeout(_calcTimer);
   _calcTimer = setTimeout(calculate, 300);
 }
-['calSel','wtGr','mv','bc','model','envTemp','envAlt','envHum','envPres','zeroYd','scopeH','custYd'].forEach(function(id) {
+['calSel','wtGr','mv','bc','model','envTemp','envAlt','envHum','envPres','zeroYd','scopeH'].forEach(function(id) {
   var el = document.getElementById(id);
   if (el) el.addEventListener('input', scheduleCalc);
   if (el) el.addEventListener('change', scheduleCalc);
