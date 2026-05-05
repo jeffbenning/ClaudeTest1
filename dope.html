@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DOPE Calculator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -54,6 +55,14 @@ tr:hover td { background: rgba(60,60,60,.4); }
 .y { color: #fbbf24; font-weight: bold; }
 .r { color: #f87171; font-weight: bold; }
 .zero { color: #ff7300; }
+.tbl-wrap { overflow-x: auto; }
+@media (max-width: 600px) {
+  body { padding: 12px 10px; }
+  h1 { font-size: 1.2rem; }
+  .card { padding: 14px; }
+  .field { flex: 1 1 100% !important; }
+  label { font-size: .75rem; }
+}
 </style>
 </head>
 <body>
@@ -178,10 +187,10 @@ tr:hover td { background: rgba(60,60,60,.4); }
       <div style="flex:0 0 auto;"><label style="display:block;">Custom Range (yd)</label><input id="custYd" type="number" placeholder="e.g. 375" style="width:130px;" oninput="updateInlineCustYd()"></div>
       <div id="custYdResult" style="padding-top:18px;font-size:1.1rem;font-weight:bold;color:#ff7300;white-space:nowrap;"></div>
     </div>
-    <table>
+    <div class="tbl-wrap"><table>
       <thead><tr><th>Range</th><th>MRAD Adj.</th><th>Velocity</th><th>TOF</th></tr></thead>
       <tbody id="tbody"></tbody>
-    </table>
+    </table></div>
   </div>
 
   <div class="card" id="customTblCard" style="display:none;">
@@ -189,7 +198,7 @@ tr:hover td { background: rgba(60,60,60,.4); }
       <span style="font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;color:#d4d4d4;">Custom Distance Table</span>
       <button class="btn-sm" onclick="addCustomTblRow()" style="padding:5px 12px;font-size:.7rem;">+ Add Row</button>
     </div>
-    <table style="width:100%;border-collapse:collapse;font-size:.88rem;">
+    <div class="tbl-wrap"><table style="width:100%;border-collapse:collapse;font-size:.88rem;">
       <thead>
         <tr>
           <th style="width:24px;"></th>
@@ -201,7 +210,7 @@ tr:hover td { background: rgba(60,60,60,.4); }
         </tr>
       </thead>
       <tbody id="customTblBody"></tbody>
-    </table>
+    </table></div>
   </div>
 
   <div class="card" id="calibCard" style="display:none;">
