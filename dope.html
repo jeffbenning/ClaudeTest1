@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>DOPE Calculator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -15,7 +19,7 @@ h1 { color: #ff7300; font-size: 1.6rem; letter-spacing: .2em; text-transform: up
 .row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 14px; }
 .field { flex: 1 1 160px; }
 label { display: block; font-size: .68rem; color: #a0a0a0; font-family: 'Roboto Mono', monospace; letter-spacing: .03em; margin-bottom: 4px; }
-input, select { width: 100%; background: #141414; border: 1px solid #333333; color: #e2e8f0; font-family: inherit; font-size: .9rem; padding: 8px 10px; border-radius: 4px; }
+input, select { width: 100%; background: #141414; border: 1px solid #333333; color: #e2e8f0; font-family: inherit; font-size: 1rem; padding: 8px 10px; border-radius: 4px; }
 input:focus, select:focus { outline: 2px solid #ff7300; }
 button { width: 100%; padding: 11px; background: #333333; color: #ff7300; border: 1px solid #ff7300; font-family: inherit; font-size: .9rem; letter-spacing: .15em; text-transform: uppercase; border-radius: 4px; cursor: pointer; }
 button:hover { background: #ff7300; color: #141414; }
@@ -54,6 +58,15 @@ tr:hover td { background: rgba(60,60,60,.4); }
 .y { color: #fbbf24; font-weight: bold; }
 .r { color: #f87171; font-weight: bold; }
 .zero { color: #ff7300; }
+.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 480px) {
+  body { padding: 16px 12px; }
+  h1 { font-size: 1.3rem; }
+  .card { padding: 14px 12px; }
+  .field { flex: 1 1 140px; }
+  td, th { padding: 8px 8px; font-size: .82rem; }
+  button { font-size: .85rem; padding: 13px; }
+}
 </style>
 </head>
 <body>
@@ -178,10 +191,12 @@ tr:hover td { background: rgba(60,60,60,.4); }
       <div style="flex:0 0 auto;"><label style="display:block;">Custom Range (yd)</label><input id="custYd" type="number" placeholder="e.g. 375" style="width:130px;" oninput="updateInlineCustYd()"></div>
       <div id="custYdResult" style="padding-top:18px;font-size:1.1rem;font-weight:bold;color:#ff7300;white-space:nowrap;"></div>
     </div>
+    <div class="tbl-wrap">
     <table>
       <thead><tr><th>Range</th><th>MRAD Adj.</th><th>Velocity</th><th>TOF</th></tr></thead>
       <tbody id="tbody"></tbody>
     </table>
+    </div>
   </div>
 
   <div class="card" id="customTblCard" style="display:none;">
@@ -189,6 +204,7 @@ tr:hover td { background: rgba(60,60,60,.4); }
       <span style="font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;color:#d4d4d4;">Custom Distance Table</span>
       <button class="btn-sm" onclick="addCustomTblRow()" style="padding:5px 12px;font-size:.7rem;">+ Add Row</button>
     </div>
+    <div class="tbl-wrap">
     <table style="width:100%;border-collapse:collapse;font-size:.88rem;">
       <thead>
         <tr>
@@ -202,6 +218,7 @@ tr:hover td { background: rgba(60,60,60,.4); }
       </thead>
       <tbody id="customTblBody"></tbody>
     </table>
+    </div>
   </div>
 
   <div class="card" id="calibCard" style="display:none;">
